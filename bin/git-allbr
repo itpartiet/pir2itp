@@ -1,0 +1,146 @@
+#!/bin/sh
+
+#==============================================================================
+# git-allbr
+# File ID: b8c0ee54-eb71-11df-a07a-fefdb24f8e10
+#
+# Create or update local Git branches that exist in remote repositories.
+#
+# Author: Øyvind A. Holm <sunny@sunbase.org>
+# License: GNU General Public License version 2 or later.
+#==============================================================================
+
+progname=git-allbr
+VERSION=0.8.2
+
+opt_all=0
+opt_create=0
+opt_commit_branches=0
+opt_force=0
+opt_help=0
+opt_dry_run=0
+opt_quiet=0
+opt_upstream=0
+opt_verbose=0
+while test -n "$1"; do
+	case "$1" in
+	-a|--all) opt_all=1; shift ;;
+	-C|--create) opt_create=1; shift ;;
+	-c|--commit-branches) opt_commit_branches=1; shift ;;
+	-f|--force) opt_force=1; shift ;;
+	-h|--help) opt_help=1; shift ;;
+	-n|--dry-run) opt_dry_run=1; shift ;;
+	-q|--quiet) opt_quiet=$(($opt_quiet + 1)); shift ;;
+	-u|--upstream) opt_upstream=1; shift ;;
+	-v|--verbose) opt_verbose=$(($opt_verbose + 1)); shift ;;
+	--version) echo $progname $VERSION; exit 0 ;;
+	--) shift; break ;;
+	*)
+		if printf '%s\n' "$1" | grep -q ^-; then
+			echo "$progname: $1: Unknown option" >&2
+			exit 1
+		else
+			break
+		fi
+	break ;;
+	esac
+done
+opt_verbose=$(($opt_verbose - $opt_quiet))
+
+if test "$opt_help" = "1"; then
+	test $opt_verbose -gt 0 && { echo; echo $progname $VERSION; }
+	cat <<END
+
+Create or update local Git branches that exist in remote repositories.
+
+Usage: $progname [options] [remote [remotes [...]]]
+
+Options:
+
+  -a, --all
+    Create branches from all remotes. If this option is not specified, 
+    only "origin" or remotes specified on the command line are scanned. 
+    This option has no effect if any remotes are specified on the 
+    command line.
+  -C, --create
+    Create new branches locally. Without this option, only already 
+    existing branches will be updated.
+  -c, --commit-branches
+    Also create commit-* branches created by git-dangling.
+  -f, --force
+    Allow rewriting of local branches if fast-forward is not possible.
+  -h, --help
+    Show this help.
+  -n, --dry-run
+    Don't make any changes, print the commands that would be executed.
+  -q, --quiet
+    Be more quiet. Can be repeated to increase silence.
+    One -q turns off the constantly updating branch name display.
+  -u, --upstream
+    Set local branches to track remote branches as upstream, similar 
+    functionality to "git branch -u" and "git push -u". When used with 
+    -a/--all, use the last remote in alphabetical order. If several 
+    remotes are specified, the last one is used.
+  -v, --verbose
+    Increase level of verbosity. Can be repeated.
+  --version
+    Print version information.
+
+END
+	exit 0
+fi
+
+test "$opt_dry_run" = "1" && sim="echo $progname: cmd: " || sim=
+remotes=origin
+test "$opt_all" = "1" && remotes=$(git remote)
+unset create_dangling
+test "$opt_commit_branches" = "1" && create_dangling=1
+unset force_str
+test "$opt_force" = "1" && force_str="--force"
+unset upstream_str
+test "$opt_upstream" = "1" && upstream_str="-u"
+test -z "$1" || remotes="$@"
+echo
+is_bare=1
+test "$(git config --get core.bare)" = "true" || is_bare=0
+t_el="$(tput el)"
+
+for remote in $remotes; do
+	echo ==== $progname: remote $remote
+	for f in $(
+	    git branch -a |
+	        grep remotes/$remote/ |
+	        grep -v -E "remotes/$remote/HEAD( |\$)" |
+	        perl -pe "s!remotes/$remote/(.*)\$!\$1!" |
+		if test "$opt_commit_branches" = "1"; then
+			cat;
+		else
+			grep -v -E 'commit-[0-9a-f]{40}';
+		fi
+	); do
+		branch_exists=$(
+			git for-each-ref --format='%(refname:short)' \
+			    refs/heads/ | grep -q ^$f\$ && echo 1 || echo 0
+		)
+		if test $opt_verbose -ge 0; then
+			printf '%s%s\r' "$f" "$t_el"
+		fi
+		test "$opt_create" = "0" -a "$branch_exists" = "0" && continue
+		(
+			if test "$branch_exists" = "1"; then
+				$sim git log --format=%h refs/heads/$f..$remote/$f |
+				   grep -q . && $sim git push . $remote/$f:refs/heads/$f \
+				     $force_str 2>&1 |
+				     grep -v '^Everything up-to-date'
+			else
+				$sim git branch --no-track $f $remote/$f 2>&1 &&
+				   echo $progname: Created $f
+			fi
+		) | grep -v '^fatal: A branch named .* already exists.'
+		test -n "$upstream_str" && $sim git branch -u $remote/$f $f
+	done
+	tput el
+	echo
+done
+
+# vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 :

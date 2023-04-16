@@ -88,6 +88,11 @@ $sim git clone -o gh-pir git@github.com:piratpartiet/$r.git \
 && $sim git remote add gh-itp git@github.com:itpartiet/$r.git \
 && $sim git remote add gl-itp git@gitlab.com:itpartiet/$r.git \
 && $sim git remote add gl-pir git@gitlab.com:piratpartiet/$r.git \
+&& $sim git fetch --all --prune \
+&& $sim git checkout $(git log -1 --format=%H) \
+&& $sim bin/git-allbr -a -C \
+&& $sim git push --all gl-itp \
+&& $sim git push --all gh-itp \
 && $sim cd .. \
 || exit 1; \
 
