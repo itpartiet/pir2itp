@@ -87,19 +87,18 @@ $sim rm -rf repos
 $sim mkdir repos
 $sim cd repos || exit 1
 for r in $repos; do
-$sim git clone -o gh-pir git@github.com:piratpartiet/$r.git \
-&& $sim cd $r \
-&& $sim git remote add gh-itp git@github.com:itpartiet/$r.git \
-&& $sim git remote add gl-itp git@gitlab.com:itpartiet/$r.git \
-&& $sim git remote add gl-pir git@gitlab.com:piratpartiet/$r.git \
-&& $sim git fetch --all --prune \
-&& $sim git checkout $(git log -1 --format=%H) \
-&& $sim bin/git-allbr -a -C \
-&& $sim git push --all gl-itp \
-&& $sim git push --all gh-itp \
-&& $sim cd .. \
-|| exit 1; \
-
+	$sim git clone -o gh-pir git@github.com:piratpartiet/$r.git \
+	&& $sim cd $r \
+	&& $sim git remote add gh-itp git@github.com:itpartiet/$r.git \
+	&& $sim git remote add gl-itp git@gitlab.com:itpartiet/$r.git \
+	&& $sim git remote add gl-pir git@gitlab.com:piratpartiet/$r.git \
+	&& $sim git fetch --all --prune \
+	&& $sim git checkout $(git log -1 --format=%H) \
+	&& $sim bin/git-allbr -a -C \
+	&& $sim git push --all gl-itp \
+	&& $sim git push --all gh-itp \
+	&& $sim cd .. \
+	|| exit 1; \
 done
 
 # vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 :
