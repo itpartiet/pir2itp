@@ -56,4 +56,41 @@ END
 	exit 0
 fi
 
+sim=echo
+
+repos=$(cat <<END )
+drywall
+falkvinge-foredrag
+pir-breddeprogram
+pir-hordaland
+pir-kjerneprogram
+pir-medl
+pir-norge
+pir-politisk-program
+pir-reboot
+pir-rogaland
+pir-tools
+pir-valg
+pir-valgprogram
+pir-vedtekter
+pir-wikikonv
+piratpartiet
+piren
+zenbership
+END
+
+$sim rm -rf repos
+$sim mkdir repos
+$sim cd repos || exit 1
+for r in $repos; do
+$sim git clone -o gh-pir git@github.com:piratpartiet/$r.git \
+&& $sim cd $r \
+&& $sim git remote add gh-itp git@github.com:itpartiet/$r.git \
+&& $sim git remote add gl-itp git@gitlab.com:itpartiet/$r.git \
+&& $sim git remote add gl-pir git@gitlab.com:piratpartiet/$r.git \
+&& $sim cd .. \
+|| exit 1; \
+
+done
+
 # vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 :
