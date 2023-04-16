@@ -15,12 +15,14 @@ VERSION=0.0.0
 
 opt_help=0
 opt_quiet=0
+opt_real=0
 opt_verbose=0
 while test -n "$1"; do
 	case "$1" in
 	-h|--help) opt_help=1; shift ;;
 	-q|--quiet) opt_quiet=$(($opt_quiet + 1)); shift ;;
 	-v|--verbose) opt_verbose=$(($opt_verbose + 1)); shift ;;
+	--real) opt_real=1; shift ;;
 	--version) echo $progname $VERSION; exit 0 ;;
 	--) shift; break ;;
 	*)
@@ -47,6 +49,9 @@ Options:
     Show this help.
   -q, --quiet
     Be more quiet. Can be repeated to increase silence.
+  --real
+    This is for real. Actually run the commands, don't send them to 
+    stdout.
   -v, --verbose
     Increase level of verbosity. Can be repeated.
   --version
@@ -56,7 +61,7 @@ END
 	exit 0
 fi
 
-sim=echo
+sim=$([ "$opt_real" = "1" ] || echo echo)
 
 repos=$(cat <<END )
 drywall
