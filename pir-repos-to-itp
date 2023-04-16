@@ -99,6 +99,8 @@ for r in $repos; do
 	&& $sim git push --tags gl-itp \
 	&& $sim git push --all gh-itp \
 	&& $sim git push --tags gh-itp \
+	&& $sim git push --all gl-pir \
+	&& $sim git push --tags gl-pir \
 	&& $sim cd .. \
 	|| exit 1; \
 done
