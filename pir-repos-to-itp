@@ -94,7 +94,7 @@ for r in $repos; do
 	&& $sim git remote add gl-pir git@gitlab.com:piratpartiet/$r.git \
 	&& $sim git fetch --all --prune \
 	&& $sim git checkout $(git log -1 --format=%H) \
-	&& $sim bin/git-allbr -a -C \
+	&& $sim ../../bin/git-allbr -a -C \
 	&& $sim git checkout - \
 	&& $sim git push --all gl-itp \
 	&& $sim git push --tags gl-itp \
