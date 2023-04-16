@@ -95,6 +95,7 @@ for r in $repos; do
 	&& $sim git fetch --all --prune \
 	&& $sim git checkout $(git log -1 --format=%H) \
 	&& $sim bin/git-allbr -a -C \
+	&& $sim git checkout - \
 	&& $sim git push --all gl-itp \
 	&& $sim git push --tags gl-itp \
 	&& $sim git push --all gh-itp \
